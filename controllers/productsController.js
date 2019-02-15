@@ -49,21 +49,23 @@ module.exports = {
 	// route to seed the database using the Faker package
 	seed: function(req, res) {
 		console.log("Seeding...");
-		var max = 25;
+		var max = 200;
 
 		for(let i = 0; i < max; i++) {
 			let productName = faker.commerce.productName();
 			let department = faker.commerce.department();
 			let price = faker.commerce.price();
+			let imgURL = faker.image.imageUrl();
 
 			// create object to send to db
 			var obj = {
 				productName: productName,
 				department: department,
+				imgURL: imgURL,
 				price: parseInt(price)
 			}
 
-			// console.log(obj);
+			console.log(obj);
 
 			db.Product.create(obj)
 				.then(addedProduct => {

@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 // define a product schema to keep data in collection organized; data must adhere to this schema
 const productSchema = new Schema({
 	productName: { type: String, required: true, index:true },
-  department: { type: String, required: true, index: true },
+	department: { type: String, required: true, index: true },
+	imgURL: { type: String, required: true },
 	price: { type: Number, required: true }
 });
 
