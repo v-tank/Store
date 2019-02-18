@@ -3,13 +3,16 @@ import './App.css';
 import AppBar from './components/AppBar';
 import axios from 'axios';
 import CircularProgress from './components/CircularProgress/CircularProgress';
-// import DebounceInput from './components/DebounceInput/DebounceInput';
-import Grid from '@material-ui/core/Grid';
 import React, { Component } from 'react';
 import ProductTile from './components/ProductTile';
 import { withStyles } from '@material-ui/core/styles';
+import Wrapper from './components/Wrapper';
 
-// let counter = 0;
+let counter = 0;
+function createData(name, department, price, imgURL) {
+  counter += 1;
+  return { id: counter, name, department, price, imgURL };
+}
 
 // styling for the app page
 const styles = () => ({
@@ -30,104 +33,63 @@ const styles = () => ({
 class App extends Component {
 
   state = {
-    cart: [], // array to hold all table rows
+    cart: [], // array to hold all purchased ds
     loading: true,  // bool that holds loading state
-    searchQuery: '',   // holds search query,
-    products: JSON.parse(window.localStorage.getItem('products')) || []
+    products: []
   }
 
-  // function to define state and recreate table once fetched data has been received
-  // updateStateAfterFetch = (arr) => {
-  //   console.log(arr);
-  //   this.setState({searchQuery: '', products: [], loading: true});
+  purchaseItem = (id, name) => {
+    this.setState({
+      cart: [...this.state.cart, id]
+    });
+    console.log(`Added ${name} to the cart!`);
 
-  //   this.setState({searchQuery: '', loading: false});
-  // }
-
-  // loading animation function
-  startLoadAnimation = () => {
-    this.setState({loading: true});
-  }
-
-  // update search query with string typed in textbox
-  updateSearchState = (str) => {
-    this.setState({searchQuery: str});
-
-    // if empty query string, refetch all data
-    if (this.state.searchQuery === '') {
-      this.setState({data: [], loading: true}); // empty state array and start loading animation
-
-      var queryURL = '/api/product'; // define query route for GET request
-
-      // make a GET request using axios
-      axios.get(queryURL)
-        .then(res => {
-          // map through response array to create table rows and update state array
-          res.data.map(el => {
-            return(el);
-          });
-
-          this.setState({searchQuery: '', loading: false}); // stop loading animation
-        });
-    }
+    const notPurchased = this.state.products.filter(prod => prod.id !== id);
+    this.setState({products: notPurchased});
   }
 
   // function to fetch all data when componentWillMount
   componentWillMount() {
-    this.startLoadAnimation();
     var queryURL = '/api/product';
 
     // make a GET request using axios
-    if (this.state.products.length === 0) {
-      axios.get(queryURL)
+    axios.get(queryURL)
       .then(res => {
-        // console.log(res.data);
-        window.localStorage.setItem('products', JSON.stringify(res.data));
-        return this.setState({
-          products: res.data,
-          loading: false
-        })
+
+        res.data.map(el => {
+          return this.setState({
+            products: [...this.state.products, createData(el.productName, el.department, el.price, el.imgURL)]
+          });
+        });
+        this.setState({loading: false});  // stop loading animation
       });
     }
 
-  }
-
   render() {
     const { classes } = this.props;
-    // console.log(this.state.products);
     return (
       <div className={classes.app}>
         {/* Create AppBar and pass in logo, title, and cart count as props */}
         <AppBar logo="🌎" title="Product Store" count={this.state.cart.length}/>
 
-        {/* Create DebounceInput component and pass functions as props */}
-        {/* <DebounceInput className={classes.searchBar} updateStateAfterFetch={this.updateStateAfterFetch} updateSearchState={this.updateSearchState}/>
-        */}
-
-        {/* Create Grid to hold the table */}
-         <Grid container className={classes.root}>
-          <Grid item xs={12}>
-            <Grid
-              container
-              alignItems='center'
-              justify='center'
-            >
-
+        {this.state.loading ? <CircularProgress /> :
+          (
+            <Wrapper>
             {this.state.products.map(product => (
-              <ProductTile
-                id={product.id}
-                key={product.id}
-                name={product.name}
-                imgURL={product.imgURL}
-                department={product.department}
-                price={product.price}
-                // ADD TO CART METHOD NEEDS TO BE IMPLEMENTED
-              />
-            ))}
+                <ProductTile
+                  purchaseItem={this.purchaseItem}
+                  id={product.id}
+                  key={product.id}
+                  name={product.name}
+                  department={product.department}
+                  price={product.price}
+                  imgURL={product.imgURL}
+                />
+              ))}
+            </Wrapper>
+          )
+        }
 
-            </Grid>
-          </Grid>
-        </Grid>
       </div>
     );
   }

@@ -21,7 +21,7 @@ module.exports = {
 	},
 	// function to find all objects in database and return the first 100 in the collection
 	findAll: function(req, res) {
-		db.Product.find({}).limit(100).then(products => {
+		db.Product.find({}).limit(10).then(products => {
 				res.json(products); // send back an array of objects with the first 100 products in the db
 		});
 	},
